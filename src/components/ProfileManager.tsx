@@ -15,7 +15,9 @@ export default function ProfileManager() {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [savingStep, setSavingStep] = useState<'uploading' | 'saving' | null>(null);
     const [message, setMessage] = useState('');
+    const [bucketChecked, setBucketChecked] = useState(false);
     const supabase = createClient();
 
     const fetchProfiles = useCallback(async () => {
@@ -37,19 +39,23 @@ export default function ProfileManager() {
     }, [fetchProfiles]);
 
     const ensureBucket = async () => {
+        if (bucketChecked) return;
+
         // Check if bucket exists, create if not
         const { data: buckets } = await supabase.storage.listBuckets();
         const exists = buckets?.some((b) => b.name === 'photos');
         if (!exists) {
             await supabase.storage.createBucket('photos', {
                 public: true,
-                fileSizeLimit: 5 * 1024 * 1024, // 5MB
+                fileSizeLimit: 25 * 1024 * 1024, // Increased to 25MB
                 allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
             });
         }
+        setBucketChecked(true);
     };
 
     const uploadPhoto = async (file: File, profileName: string): Promise<string | null> => {
+        setSavingStep('uploading');
         await ensureBucket();
 
         const fileExt = file.name.split('.').pop();
@@ -57,7 +63,10 @@ export default function ProfileManager() {
 
         const { error } = await supabase.storage
             .from('photos')
-            .upload(fileName, file, { upsert: true });
+            .upload(fileName, file, {
+                upsert: true,
+                cacheControl: '3600'
+            });
 
         if (error) {
             console.error('Upload error:', error);
@@ -71,6 +80,13 @@ export default function ProfileManager() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Final size check before submit
+        if (photoFile && photoFile.size > 25 * 1024 * 1024) {
+            setMessage('Error: Photo must be less than 25MB');
+            return;
+        }
+
         setSaving(true);
         setMessage('');
 
@@ -81,10 +97,12 @@ export default function ProfileManager() {
                 photoUrl = await uploadPhoto(photoFile, name);
                 if (!photoUrl) {
                     setSaving(false);
+                    setSavingStep(null);
                     return;
                 }
             }
 
+            setSavingStep('saving');
             if (editingId) {
                 // Update existing profile
                 const updateData: Record<string, string> = { name, cluster };
@@ -115,6 +133,7 @@ export default function ProfileManager() {
             setMessage(err instanceof Error ? `Error: ${err.message}` : 'Failed to save');
         } finally {
             setSaving(false);
+            setSavingStep(null);
         }
     };
 
@@ -193,8 +212,8 @@ export default function ProfileManager() {
             {message && (
                 <div
                     className={`px-4 py-3 rounded-xl text-sm ${message.startsWith('Error') || message.startsWith('Photo upload')
-                            ? 'bg-red-500/10 border border-red-500/30 text-red-400'
-                            : 'bg-green-500/10 border border-green-500/30 text-green-400'
+                        ? 'bg-red-500/10 border border-red-500/30 text-red-400'
+                        : 'bg-green-500/10 border border-green-500/30 text-green-400'
                         }`}
                 >
                     {message}
@@ -265,7 +284,7 @@ export default function ProfileManager() {
                                     className="block w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-[#1a1a1a] file:text-gray-300 file:cursor-pointer hover:file:bg-[#2a2a2a] file:transition-all cursor-pointer"
                                 />
                                 <p className="text-[10px] text-gray-600 mt-1">
-                                    JPG, PNG or WebP. Max 5MB.
+                                    JPG, PNG or WebP. Max 25MB.
                                 </p>
                             </div>
                         </div>
@@ -275,10 +294,15 @@ export default function ProfileManager() {
                         <button
                             type="submit"
                             disabled={saving}
-                            className="px-6 py-2.5 text-xs uppercase tracking-wider text-white bg-gradient-to-r from-[#ED1C24] to-[#b91520] rounded-lg hover:from-[#ff2d35] hover:to-[#ED1C24] transition-all disabled:opacity-50 cursor-pointer"
+                            className="px-6 py-2.5 text-xs uppercase tracking-wider text-white bg-gradient-to-r from-[#ED1C24] to-[#b91520] rounded-lg hover:from-[#ff2d35] hover:to-[#ED1C24] transition-all disabled:opacity-50 cursor-pointer min-w-[100px]"
                             style={{ fontFamily: 'Orbitron, sans-serif' }}
                         >
-                            {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
+                            {saving ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                    {savingStep === 'uploading' ? 'Uploading...' : 'Saving...'}
+                                </span>
+                            ) : editingId ? 'Update' : 'Create'}
                         </button>
                         <button
                             type="button"
