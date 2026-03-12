@@ -1,6 +1,6 @@
 export default function CircuitBackground() {
     return (
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.04]">
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.08]">
             <svg
                 viewBox="0 0 1200 800"
                 fill="none"

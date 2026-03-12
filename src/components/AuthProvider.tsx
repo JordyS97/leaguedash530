@@ -5,6 +5,7 @@ import {
     useContext,
     useEffect,
     useState,
+    useRef,
     type ReactNode,
 } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -28,7 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
-    const supabase = createClient();
+    const supabaseRef = useRef(createClient());
+    const supabase = supabaseRef.current;
 
     useEffect(() => {
         const getUser = async () => {
@@ -38,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(user);
 
             if (user) {
-                // Check if user is admin
                 const { data } = await supabase
                     .from('admin_users')
                     .select('id')
@@ -74,10 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [supabase]);
 
     const signOut = async () => {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut({ scope: 'local' });
+        } catch (e) {
+            console.error('Sign out error:', e);
+        }
         setUser(null);
         setIsAdmin(false);
-        window.location.href = '/';
+        // Force full page reload to clear all state
+        window.location.replace('/');
     };
 
     return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import CsvUploader from '@/components/CsvUploader';
+import ProfileManager from '@/components/ProfileManager';
 
 export default function AdminPage() {
     const { user, isAdmin, loading, signOut } = useAuth();
@@ -126,8 +127,32 @@ export default function AdminPage() {
                     </div>
                 </div>
 
+                {/* Sample CSV Download */}
+                <div className="mb-6 bg-[#111] border border-[#2a2a2a] rounded-xl px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-blue-400 text-sm">📄</span>
+                        <p className="text-xs text-gray-400">
+                            Need the CSV format? Download the sample template with headers: <code className="text-gray-300 bg-[#1a1a1a] px-1.5 py-0.5 rounded text-[10px]">Name, Cluster, PP, DP, TP</code>
+                        </p>
+                    </div>
+                    <a
+                        href="/sample_leaderboard.csv"
+                        download="sample_leaderboard.csv"
+                        className="flex-shrink-0 px-4 py-2 text-xs uppercase tracking-wider text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/10 transition-all"
+                        style={{ fontFamily: 'Orbitron, sans-serif' }}
+                    >
+                        Download Sample
+                    </a>
+                </div>
+
                 {/* CSV Uploader */}
                 <CsvUploader />
+
+                {/* Divider */}
+                <div className="my-10 border-t border-[#2a2a2a]" />
+
+                {/* Profile Manager */}
+                <ProfileManager />
             </main>
         </div>
     );
