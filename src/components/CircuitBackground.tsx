@@ -31,14 +31,15 @@ export default function CircuitBackground({ topRiders = [] }: CircuitBackgroundP
                 />
 
                 {/* Circuit image */}
-                <div className="relative w-full h-full opacity-[0.15]">
+                <div className="relative w-full h-full opacity-[0.18]">
                     <Image
                         src="/mandalika-circuit.png"
                         alt="Mandalika International Circuit"
                         fill
                         className="object-contain"
                         style={{
-                            filter: 'invert(1) drop-shadow(0 0 20px rgba(255, 200, 50, 0.5)) drop-shadow(0 0 50px rgba(255, 200, 50, 0.2))',
+                            filter: 'grayscale(1) brightness(4) contrast(0.6) drop-shadow(0 0 25px rgba(255, 210, 50, 0.7)) drop-shadow(0 0 60px rgba(255, 200, 50, 0.3))',
+                            mixBlendMode: 'screen',
                         }}
                         priority
                     />
