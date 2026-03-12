@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Papa from 'papaparse';
 import { createClient } from '@/lib/supabase/client';
 import type { CsvRow } from '@/lib/types';
@@ -13,7 +13,18 @@ export default function CsvUploader() {
     const [status, setStatus] = useState<'idle' | 'parsed' | 'validating' | 'ready' | 'uploading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [dragOver, setDragOver] = useState(false);
+    const [hasExistingData, setHasExistingData] = useState(false);
     const supabase = createClient();
+
+    useEffect(() => {
+        const checkExisting = async () => {
+            const { count } = await supabase
+                .from('leaderboard')
+                .select('*', { count: 'exact', head: true });
+            setHasExistingData((count ?? 0) > 0);
+        };
+        checkExisting();
+    }, [supabase]);
 
     const handleFile = useCallback((selectedFile: File) => {
         setFile(selectedFile);
@@ -115,9 +126,9 @@ export default function CsvUploader() {
             const rows = parsedData.map((row) => ({
                 name: row.Name.trim(),
                 cluster: row.Cluster.trim(),
-                pp: parseFloat(row.PP) || 0,
-                dp: parseFloat(row.DP) || 0,
-                tp: parseFloat(row.TP) || 0,
+                pp: parseFloat(String(row.PP).replace('%', '').trim()) || 0,
+                dp: parseFloat(String(row.DP).replace('%', '').trim()) || 0,
+                tp: parseFloat(String(row.TP).replace('%', '').trim()) || 0,
             }));
 
             const { error: insertError } = await supabase
@@ -161,8 +172,8 @@ export default function CsvUploader() {
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
                 className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer ${dragOver
-                        ? 'border-[#ED1C24] bg-[#ED1C24]/5'
-                        : 'border-[#2a2a2a] hover:border-[#ED1C24]/50 bg-[#111]/50'
+                    ? 'border-[#ED1C24] bg-[#ED1C24]/5'
+                    : 'border-[#2a2a2a] hover:border-[#ED1C24]/50 bg-[#111]/50'
                     }`}
                 onClick={() => {
                     const input = document.createElement('input');
@@ -205,10 +216,10 @@ export default function CsvUploader() {
             {message && (
                 <div
                     className={`px-4 py-3 rounded-xl text-sm ${status === 'error'
-                            ? 'bg-red-500/10 border border-red-500/30 text-red-400'
-                            : status === 'success'
-                                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                                : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+                        ? 'bg-red-500/10 border border-red-500/30 text-red-400'
+                        : status === 'success'
+                            ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                            : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
                         }`}
                 >
                     {message}
@@ -303,7 +314,7 @@ export default function CsvUploader() {
                             className="flex-1 py-3 bg-gradient-to-r from-[#ED1C24] to-[#b91520] text-white font-bold rounded-xl hover:from-[#ff2d35] hover:to-[#ED1C24] transition-all disabled:opacity-50 shadow-lg shadow-[#ED1C24]/20 cursor-pointer"
                             style={{ fontFamily: 'Orbitron, sans-serif' }}
                         >
-                            {uploading ? 'UPLOADING...' : '🏁 REWRITE LEADERBOARD'}
+                            {uploading ? 'UPLOADING...' : hasExistingData ? '🏁 REWRITE LEADERBOARD' : '🏁 UPLOAD LEADERBOARD'}
                         </button>
                     )}
                     <button

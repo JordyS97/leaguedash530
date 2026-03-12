@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import type { LeaderboardEntry } from '@/lib/types';
+import type { LeaderboardEntry, ClusterType } from '@/lib/types';
+import { CLUSTERS } from '@/lib/types';
 import Header from '@/components/Header';
 import CircuitBackground from '@/components/CircuitBackground';
 import ClusterGrid from '@/components/ClusterGrid';
@@ -50,9 +51,16 @@ async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
 export default async function HomePage() {
   const data = await getLeaderboardData();
 
+  // Get top rider from each cluster for the circuit overlay
+  const topRiders = CLUSTERS.map((cluster) => {
+    const entries = data.filter((e) => e.cluster === cluster);
+    entries.sort((a, b) => b.tp - a.tp);
+    return entries[0] ? { cluster: cluster as ClusterType, entry: entries[0] } : null;
+  }).filter(Boolean) as { cluster: ClusterType; entry: LeaderboardEntry }[];
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] relative">
-      <CircuitBackground />
+      <CircuitBackground topRiders={topRiders} />
       <Header />
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

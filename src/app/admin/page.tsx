@@ -106,10 +106,10 @@ export default function AdminPage() {
                                 className="text-lg font-bold text-white"
                                 style={{ fontFamily: 'Orbitron, sans-serif' }}
                             >
-                                CSV REWRITE
+                                CSV <span className="text-[#ED1C24]">UPLOAD</span>
                             </h2>
                             <p className="text-xs text-gray-600">
-                                Upload new data to completely replace the leaderboard
+                                Upload CSV data to populate or replace the leaderboard
                             </p>
                         </div>
                     </div>

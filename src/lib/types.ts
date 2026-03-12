@@ -8,7 +8,7 @@ export interface Profile {
 export interface LeaderboardEntry {
     id: string;
     name: string;
-    cluster: 'MotoGP' | 'Moto2' | 'Moto3' | 'MXGP';
+    cluster: 'MotoGP' | 'Moto2' | 'Moto3' | 'MXGP' | 'WSBK';
     pp: number;
     dp: number;
     tp: number;
@@ -23,7 +23,7 @@ export interface CsvRow {
     TP: string;
 }
 
-export const CLUSTERS = ['MotoGP', 'Moto2', 'Moto3', 'MXGP'] as const;
+export const CLUSTERS = ['MotoGP', 'Moto2', 'Moto3', 'MXGP', 'WSBK'] as const;
 export type ClusterType = (typeof CLUSTERS)[number];
 
 export const CLUSTER_CONFIG: Record<
@@ -53,5 +53,11 @@ export const CLUSTER_CONFIG: Record<
         gradient: 'from-amber-500 to-amber-800',
         icon: '🏆',
         tagline: 'Off-Road Kings',
+    },
+    WSBK: {
+        color: '#8B5CF6',
+        gradient: 'from-violet-500 to-violet-800',
+        icon: '🏍️',
+        tagline: 'Superbike Legends',
     },
 };

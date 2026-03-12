@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { LeaderboardEntry, ClusterType } from '@/lib/types';
-import { CLUSTER_CONFIG } from '@/lib/types';
+import { CLUSTER_CONFIG, CLUSTERS } from '@/lib/types';
 import LeaderCard from './LeaderCard';
 import RadarChartModal from './RadarChartModal';
 
@@ -26,7 +26,7 @@ export default function ClusterGrid({ data }: ClusterGridProps) {
         entries.sort((a, b) => b.tp - a.tp)
     );
 
-    const clusters: ClusterType[] = ['MotoGP', 'Moto2', 'Moto3', 'MXGP'];
+    const clusters = [...CLUSTERS];
 
     return (
         <>
