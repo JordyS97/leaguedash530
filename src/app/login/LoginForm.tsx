@@ -28,8 +28,10 @@ export default function LoginForm() {
             setError(error.message);
             setLoading(false);
         } else {
-            router.push(redirectTo);
-            router.refresh();
+            // Use hard redirect (window.location.href) instead of router.push
+            // this ensures that the session cookie is correctly sent to the middleware
+            // on the first request to the admin page, avoiding loops.
+            window.location.href = redirectTo;
         }
     };
 

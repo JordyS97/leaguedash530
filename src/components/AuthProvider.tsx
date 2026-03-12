@@ -76,14 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const signOut = async () => {
         try {
-            await supabase.auth.signOut({ scope: 'local' });
+            // Global sign out to clear session everywhere including cookies
+            await supabase.auth.signOut();
         } catch (e) {
             console.error('Sign out error:', e);
+        } finally {
+            setUser(null);
+            setIsAdmin(false);
+            setLoading(false);
+            // Hard redirect to clear any residual state and sync cookies
+            window.location.href = '/';
         }
-        setUser(null);
-        setIsAdmin(false);
-        // Force full page reload to clear all state
-        window.location.replace('/');
     };
 
     return (
